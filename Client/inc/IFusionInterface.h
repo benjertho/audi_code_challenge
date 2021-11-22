@@ -39,4 +39,23 @@ protected:
     DataLogger _logger; //write the fusion result to file
 };
 
+class FusionInterface : public IFusionInterface
+{
+public:
+    FusionInterface();
+    ~FusionInterface();
+
+    void doUpdate(const SensorObjectList& sensorObjectList);
+
+private:
+    void createNewObject(const SensorObject& sensorObject);
+
+    void predict(const uint64_t timestamp);
+
+    bool associate(const SensorObject& sensorObject, uint8_t& associatedObjectIndex);
+
+    void update(const SensorObject& sensorObject, const uint8_t associatedObjectIndex);
+
+};
+
 #endif

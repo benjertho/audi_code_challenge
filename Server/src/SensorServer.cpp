@@ -58,6 +58,8 @@ void moveObjectOnCircle(SensorObject& so, const bool turnLeft, const float radiu
 
 int main(int argc, char const *argv[])
 {
+    // adapted from https://www.geeksforgeeks.org/socket-programming-cc/
+
     int server_fd, client;
     long int valread;
     struct sockaddr_in address;
@@ -102,34 +104,34 @@ int main(int argc, char const *argv[])
 
     if ((client = accept(server_fd, (struct sockaddr *)&address,
         (socklen_t*)&addrlen)) > 0)
-    {
-        std::cout << "Client connected!" << std::endl;
-
-        ////////////////////////////////////////
-
-        uint64_t timestamp = 0;
-
-        for (int i = 0;i < 100;++i)
-        {
-            moveObjectOnCircle(so1, false, RADIUS1, 400000);
-            moveObjectOnCircle(so2, true, RADIUS2, 400000);
-
-            SensorObjectList sol;
-            sol.numOfValidObjects = 2;
-            timestamp += 400000;
-            sol.timestamp = timestamp;
-            sol.objectList[0] = so1;
-            sol.objectList[1] = so2;
-
-            //moveObject(so1, 0.0, 0.0, 40000);
-            //moveObject(so2, 0.0, 0.0, 40000);
-
-            send(client, (char*)&sol, sizeof(SensorObjectList), 0);
-            //send(client, (char*)&so2, sizeof(SensorObject), 0);
-        }
-
+    {   
         perror("accept");
         exit(EXIT_FAILURE);
+    }
+
+    std::cout << "Client connected!" << std::endl;
+
+    ////////////////////////////////////////
+
+    uint64_t timestamp = 0;
+
+    for (int i = 0;i < 100;++i)
+    {
+        moveObjectOnCircle(so1, false, RADIUS1, 400000);
+        moveObjectOnCircle(so2, true, RADIUS2, 400000);
+
+        SensorObjectList sol;
+        sol.numOfValidObjects = 2;
+        timestamp += 400000;
+        sol.timestamp = timestamp;
+        sol.objectList[0] = so1;
+        sol.objectList[1] = so2;
+
+        //moveObject(so1, 0.0, 0.0, 40000);
+        //moveObject(so2, 0.0, 0.0, 40000);
+
+        send(client, (char*)&sol, sizeof(SensorObjectList), 0);
+        //send(client, (char*)&so2, sizeof(SensorObject), 0);
     }
    
     return 0;
