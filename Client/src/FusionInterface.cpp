@@ -17,11 +17,14 @@ void FusionInterface::doUpdate(const SensorObjectList& sensorObjectList)
     // predict objectList locations
     predict(sensorObjectList.timestamp);
     _logger.log(_objectList.numOfValidObjects, "NumOfPredictedObjects");
+    _logger.log(_objectList, "PredictedObject");
+    
 
     // associate all sensor objects with objectlist objects
     uint8_t association;
     for (int i = 0; i < sensorObjectList.numOfValidObjects; ++i)
     {
+        // add objectlist items if there aren't enough
         if (i >= _objectList.numOfValidObjects) 
         {
             _logger.log(-1, "AssociationIndex");
@@ -29,9 +32,16 @@ void FusionInterface::doUpdate(const SensorObjectList& sensorObjectList)
         }
         else
         {
-            associate(sensorObjectList.objectList[i], association);
-            _logger.log(association, "AssociationIndex");
-            update(sensorObjectList.objectList[i], association);             
+            // associate sensorobject item with objectlist item and update objectlist
+            if (associate(sensorObjectList.objectList[i], association))
+            {
+                _logger.log(association, "AssociationIndex");
+                update(sensorObjectList.objectList[i], association);
+            }
+            else
+            {
+                _logger.log(-1, "AssociationIndex");
+            }
         } 
         _logger.log(i, "SensorObjectIndex");
     }
@@ -43,6 +53,7 @@ void FusionInterface::doUpdate(const SensorObjectList& sensorObjectList)
 
 void FusionInterface::createNewObject(const SensorObject& sensorObject)
 {
+    // create new object list item in the image of a sensor object
     if (_objectList.numOfValidObjects < MAX_NUM_OF_OBJECTS)
     {
         Object obj = Object();
@@ -68,6 +79,8 @@ void FusionInterface::predict(const uint64_t timestamp)
         _objectList.objects[i].x = _objectList.objects[i].x + delta_t * _objectList.objects[i].vx * 10e-6;
         _objectList.objects[i].y = _objectList.objects[i].y + delta_t * _objectList.objects[i].vy * 10e-6;
     }
+
+    // update timestamp 
     _objectList.timestamp = timestamp;
 
     // TODO: estimate uncertainties
@@ -78,7 +91,8 @@ bool FusionInterface::associate(const SensorObject& sensorObject, uint8_t& assoc
     if (_objectList.numOfValidObjects == 0) return false;
 
     // find distances between objectList estimates and sensorObject
-    //TODO make a struct for this
+    // calc "score" to account for position and velocity
+    // TODO make a struct for this
     std::vector<float> delta_x(_objectList.numOfValidObjects);
     std::vector<float> delta_y(_objectList.numOfValidObjects);
     std::vector<float> delta_vx(_objectList.numOfValidObjects);
@@ -100,23 +114,37 @@ bool FusionInterface::associate(const SensorObject& sensorObject, uint8_t& assoc
         scores[i] = dists[i] * vdists[i];
     }
 
+    // choose lowest "score" as the winner
     associatedObjectIndex = std::distance(scores.begin(), std::min_element(scores.begin(), scores.end()));
-    if (delta_x[associatedObjectIndex] <= Rx * sensorObject.x &&
-        delta_y[associatedObjectIndex] <= Ry * sensorObject.y &&
-        delta_vx[associatedObjectIndex] <= Rvx * sensorObject.vx &&
-        delta_vy[associatedObjectIndex] <= Rvy * sensorObject.vy )
+    return true;
+    
+    /*
+    std::cout 
+        << (int)associatedObjectIndex << ": "
+        << "[" <<  delta_x[associatedObjectIndex] << ", " << abs(Rx * sensorObject.x) << "], " 
+        << "[" <<  delta_y[associatedObjectIndex] << ", " << abs(Ry * sensorObject.y) << "], " 
+        << "[" <<  delta_vx[associatedObjectIndex] << ", " << abs(Rvx * sensorObject.vx) << "], " 
+        << "[" <<  delta_vy[associatedObjectIndex] << ", " << abs(Rvy * sensorObject.vy) << "], " 
+        << std::endl;
+
+    if (delta_x[associatedObjectIndex] < abs(Rx * sensorObject.x) &&
+        delta_y[associatedObjectIndex] < abs(Ry * sensorObject.y) &&
+        delta_vx[associatedObjectIndex] < abs(Rvx * sensorObject.vx) &&
+        delta_vy[associatedObjectIndex] < abs(Rvy * sensorObject.vy) )
         {
             return true;
-        }
+        
 
     // TODO: use uncertainty for association thresholding
     // TODO: see if there is more than one good candidate
-    return false;
+    return false;*/
 }
 
 void FusionInterface::update(const SensorObject& sensorObject, const uint8_t associatedObjectIndex)
 {
     //TODO: implement kalman
+
+    // update objectlist with associated sensorobject
     _objectList.objects[associatedObjectIndex].x = sensorObject.x;
     _objectList.objects[associatedObjectIndex].y = sensorObject.y;
     _objectList.objects[associatedObjectIndex].vx = sensorObject.vx;

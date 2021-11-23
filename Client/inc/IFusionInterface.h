@@ -59,5 +59,6 @@ protected:
     DataLogger _logger; //write the fusion result to file
 };
 
+// find the magnitude
 float mag(float a, float b);
 #endif

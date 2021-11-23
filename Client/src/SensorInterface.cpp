@@ -49,6 +49,7 @@ bool SensorInterface::connectToSensor(const int port, const char* ip)
 bool SensorInterface::getNextObjectList(SensorObjectList &objectList)
 {    
     int valread;
+    
     // clean slate
     objectList = SensorObjectList();
 
