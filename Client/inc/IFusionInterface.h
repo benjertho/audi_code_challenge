@@ -12,7 +12,7 @@ public:
     //prediction, association, update
     //@param[in] sensorObjectList
     virtual void doUpdate(const SensorObjectList& sensorObjectList) = 0;
-
+    
 private:
     //Use this function to initialize a new object within the
     //object list.
@@ -42,20 +42,22 @@ protected:
 class FusionInterface : public IFusionInterface
 {
 public:
-    FusionInterface();
-    ~FusionInterface();
+    FusionInterface() : _currentObjectId(0),_logger(LOG_FILE_NAME) {};
+    ~FusionInterface() {};
 
     void doUpdate(const SensorObjectList& sensorObjectList);
 
 private:
     void createNewObject(const SensorObject& sensorObject);
-
     void predict(const uint64_t timestamp);
-
     bool associate(const SensorObject& sensorObject, uint8_t& associatedObjectIndex);
-
     void update(const SensorObject& sensorObject, const uint8_t associatedObjectIndex);
 
+protected:
+    ObjectList _objectList; //object database
+    uint16_t _currentObjectId; //use this one to create new object id's
+    DataLogger _logger; //write the fusion result to file
 };
 
+float mag(float a, float b);
 #endif

@@ -8,19 +8,10 @@
 #include <netinet/in.h> 
 #include <sys/socket.h> 
 
-
 #include "ISensorInterface.h"
 #include "Definitions.h"
 
-
-SensorInterface::SensorInterface()
-{
-}
-
-SensorInterface::~SensorInterface()
-{
-}
-
+//===================================================================
 // adapted from https://www.geeksforgeeks.org/socket-programming-cc/
 
 bool SensorInterface::connectToSensor(const int port, const char* ip)
@@ -53,20 +44,31 @@ bool SensorInterface::connectToSensor(const int port, const char* ip)
     std::cout << "Sensor connected!" << std::endl;
     return true;
 }
+//===================================================================
 
 bool SensorInterface::getNextObjectList(SensorObjectList &objectList)
 {    
     int valread;
-    SensorObject buffer[MAX_NUM_OF_SENSOR_OBJECTS] = {SensorObject()};
+    // clean slate
+    objectList = SensorObjectList();
 
-    if (valread = read(sock, (char*)&objectList.objectList, sizeof(SensorObjectList)))
+    //TODO: use some proto buff here 
+    valread = recv(sock, &objectList, sizeof(SensorObjectList), 0);
+    if (valread < 0)
     {
         std::cout << "Sensor read failed!" << std::endl;
         return false;
     }
+
+    // objects rcvd --> success 
+    if (objectList.numOfValidObjects > 0)
+    {        
+        return true;
+    }
     
-    std::cout << "Received " <<  objectList.numOfValidObjects << " objects" << std::endl;
-    return true;
+    // no objects --> no more data; close connection
+    closeConnection();
+    return false;    
 }
 
 bool SensorInterface::closeConnection()
@@ -77,5 +79,6 @@ bool SensorInterface::closeConnection()
         return false;
     }
 
+std::cout << "Socket connection closed" << std::endl;
 return true;
 }

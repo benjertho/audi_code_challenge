@@ -21,8 +21,8 @@ public:
 class SensorInterface : public ISensorInterface 
 {
 public:
-    SensorInterface();
-    ~SensorInterface();
+    SensorInterface() {};
+    ~SensorInterface() {};
 
     bool connectToSensor(const int port = SENSOR_SERVER_PORT, const char* ip = SENSOR_SERVER_IP_ADDRESS);
 

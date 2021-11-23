@@ -103,7 +103,7 @@ int main(int argc, char const *argv[])
     std::cout << "Listening for incoming connections..." << std::endl;
 
     if ((client = accept(server_fd, (struct sockaddr *)&address,
-        (socklen_t*)&addrlen)) > 0)
+        (socklen_t*)&addrlen)) < 0)
     {   
         perror("accept");
         exit(EXIT_FAILURE);
@@ -111,10 +111,7 @@ int main(int argc, char const *argv[])
 
     std::cout << "Client connected!" << std::endl;
 
-    ////////////////////////////////////////
-
     uint64_t timestamp = 0;
-
     for (int i = 0;i < 100;++i)
     {
         moveObjectOnCircle(so1, false, RADIUS1, 400000);
@@ -130,6 +127,7 @@ int main(int argc, char const *argv[])
         //moveObject(so1, 0.0, 0.0, 40000);
         //moveObject(so2, 0.0, 0.0, 40000);
 
+        //TODO: use some proto buff here 
         send(client, (char*)&sol, sizeof(SensorObjectList), 0);
         //send(client, (char*)&so2, sizeof(SensorObject), 0);
     }
