@@ -1,3 +1,6 @@
+Audi Auto Driving Coding Challenge. 48 hours of Programming and not even a follow up email. Apply at your own risk.
+
+
 You are a software developer at CarSW.org. Your departement develops a new sensor data fusion approach.
 To this end, a test vehicle is available including a single sensor providing objects every 400 ms.
 Your job is to implement an interface in order to connect to the vehicles sensors.
